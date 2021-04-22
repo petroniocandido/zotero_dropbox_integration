@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from datetime import datetime   # for key generation
 import sqlite3					# 
 import subprocess				# for executing bash comands
@@ -53,6 +56,18 @@ def generate_key():
 			print("Trying new key {}".format(key))
 			
 	return key
+
+
+def move_storage_files():
+	#bashCommand = "pwd"
+	bashCommand = "ls */* | while read i; do echo -n $i | xargs -I{} -0  mv {}  -t ~/dados/Dropbox/Referencias/ ; done"
+	path_to_bash = "/bin/bash"  # or whatever is appropriate
+	process = subprocess.Popen(bashCommand, 
+                           stdout=subprocess.PIPE, 
+                           shell=True,
+                           executable=path_to_bash)
+	output, error = process.communicate()
+	print(output)
 
 	
 def get_dropbox_link(filename):
@@ -220,17 +235,20 @@ def migrar_storage(conn):
 				
 				insert_new_attachment_item(conn, id2, parentItemID, None, None, 3)
 				
-				print("Concluído com Êxito !")
+				print("Concluído com Exito !")
 				
 			else:
 				print("Link do dropbox não criado !")
 		except Exception as ex:
 			print("Erro em {}: {}".format(id_velho, ex))
 				
-conn = create_connection()	
+
+move_storage_files()
+				
+#conn = create_connection()	
 	
 #migrar_storage(conn)
 
 #clear_storage(conn)
 
-close_connection(conn)
+#close_connection(conn)
