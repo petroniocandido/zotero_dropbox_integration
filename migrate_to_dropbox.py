@@ -7,11 +7,15 @@ import subprocess				# for executing bash comands
 import re						# regular expression for test itemKey validity
 import time
 from enum import Enum
+import numpy as np
 
-key_pattern = re.compile('[23456789ABCDEFGHIJKLMNPQRSTUVWXYZ]{8}')
+charlist = '23456789ABCDEFGHIJKLMNPQRSTUVWXYZ'
+
+global_key_increment = 12345
+
+key_pattern = re.compile('['+charlist+']{8}')
 
 file_path ='/home/petronio/dados/Dropbox/Referencias/'
-
 
 class FieldType(Enum):
 	Title = 1
@@ -47,15 +51,24 @@ def generate_key():
 	m = int(round(d.timestamp() * 1000))
 	key = str_base(m, 36).upper()
 	
-	if not check_key(key):	
+	if not check_key(key):
+		global global_key_increment
+		global charlist
+		cl = len(charlist)
 		while not check_key(key):
 			time.sleep(0.2)
 			d = datetime.now()
-			m = int(round(d.timestamp() * 1000))
+			m = int(round(d.timestamp() * 1000)) + global_key_increment
 			key = str_base(m, 36).upper()
 			print("Trying new key {}".format(key))
+			global_key_increment += 17
+			
+			for c in ['0','1','O']:
+				nc = charlist[ np.random.randint(cl) ]
+				key = key.replace(c,nc)
 			
 	return key
+	
 
 
 def move_storage_files():
@@ -243,7 +256,9 @@ def migrar_storage(conn):
 			print("Erro em {}: {}".format(id_velho, ex))
 				
 
-move_storage_files()
+print(generate_key())
+
+#move_storage_files()
 				
 #conn = create_connection()	
 	
