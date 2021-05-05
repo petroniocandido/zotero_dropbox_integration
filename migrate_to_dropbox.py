@@ -8,6 +8,7 @@ import re						# regular expression for test itemKey validity
 import time
 from enum import Enum
 import numpy as np
+import sys
 
 charlist = '23456789ABCDEFGHIJKLMNPQRSTUVWXYZ'
 
@@ -256,14 +257,36 @@ def migrar_storage(conn):
 			print("Erro em {}: {}".format(id_velho, ex))
 				
 
-print(generate_key())
+print("========================================================================")
+print("=== 				SISTEMA DE INTEGRAÇÃO ZOTERO-DROPBOX		 	===")
+print("========================================================================\n\n\n\n")
+print("\t1 - Migração física dos arquivos do storage para o dropbox (execute na pasta do storage)\n")
+print("\t2 - Inclusão dos links para os arquivos no dropbox\n")
+print("\t3 - Limpeza dos links dos arquivos do storage\n")
 
-#move_storage_files()
-				
-#conn = create_connection()	
+op = input("Entre com a opção desejada:")
+print(op)
+
+if op == "1":
+	op = input("Antes de continuar, essa opção deve ser executada dentro da pasta storage. Deseja continuar? (s/n)")
+	if op == "s":
+		move_storage_files()
+	else:
+		sys.exit(0)
+elif op == "2":
+	conn = create_connection()	
+	migrar_storage(conn)
+	close_connection(conn)
 	
-#migrar_storage(conn)
+elif op == "3":
+	conn = create_connection()	
+	clear_storage(conn)
+	close_connection(conn)
+	
+else:
+	print("Opção não reconhecida.")
+	
+		
 
-#clear_storage(conn)
 
-#close_connection(conn)
+
