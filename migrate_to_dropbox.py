@@ -71,28 +71,30 @@ def generate_key():
 	return key
 	
 
-
-def move_storage_files():
-	#bashCommand = "pwd"
-	bashCommand = "ls */* | while read i; do echo -n $i | xargs -I{} -0  mv {}  -t ~/dados/Dropbox/Referencias/ ; done"
+def execute_bash_command(bashCommand):
 	path_to_bash = "/bin/bash"  # or whatever is appropriate
 	process = subprocess.Popen(bashCommand, 
                            stdout=subprocess.PIPE, 
                            shell=True,
                            executable=path_to_bash)
 	output, error = process.communicate()
+	return output, error
+
+
+def move_storage_files():
+	bashCommand = "ls */* | while read i; do echo -n $i | xargs -I{} -0  mv {}  -t ~/dados/Dropbox/Referencias/ ; done"
+	output,_ = execute_bash_command(bashCommand)
 	print(output)
+	
+	
+def backup_zotero_sqlite():
+	output,_ = execute_bash_command("rm -rf zotero.sql.BAK")
+	output,_ = execute_bash_command("cp zotero.sqlite zotero.sqlite.BAK")
 
 	
 def get_dropbox_link(filename):
 	bashCommand = "dropbox sharelink Referencias/'{}'".format(filename)
-	#print(bashCommand)
-	path_to_bash = "/bin/bash"  # or whatever is appropriate
-	process = subprocess.Popen(bashCommand, 
-                           stdout=subprocess.PIPE, 
-                           shell=True,
-                           executable=path_to_bash)
-	output, error = process.communicate()
+	output, _ = execute_bash_command(bashCommand)
 	
 	return str(output, 'utf-8')
 	
@@ -208,6 +210,9 @@ def insert_deleted_item(conn, id):
 
 
 def clear_storage(conn):
+	
+	backup_zotero_sqlite()
+	
 	cursor = select_storage_attachment_items(conn)
 	
 	for linha in cursor.fetchall():
@@ -216,6 +221,9 @@ def clear_storage(conn):
 	
 	
 def migrar_storage(conn):
+	
+	backup_zotero_sqlite()
+	
 	cursor = select_storage_attachment_items(conn)
 	
 	for linha in cursor.fetchall():
