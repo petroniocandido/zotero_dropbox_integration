@@ -263,6 +263,7 @@ print("========================================================================\
 print("\t1 - Migração física dos arquivos do storage para o dropbox (execute na pasta do storage)\n")
 print("\t2 - Inclusão dos links para os arquivos no dropbox\n")
 print("\t3 - Limpeza dos links dos arquivos do storage\n")
+print("\t4 - Sair\n")
 
 op = input("Entre com a opção desejada:")
 print(op)
@@ -283,10 +284,7 @@ elif op == "3":
 	clear_storage(conn)
 	close_connection(conn)
 	
-else:
-	print("Opção não reconhecida.")
-	
-		
+sys.exit(0)	
 
 
 
