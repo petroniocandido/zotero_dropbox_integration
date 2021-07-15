@@ -207,6 +207,24 @@ def insert_deleted_item(conn, id):
 	cursor.execute("""INSERT INTO deletedItems (itemID) VALUES (?)""", (id,))
 	
 	conn.commit()
+	
+
+def create_dropboxlink(conn, parentItemID, path):
+	url = get_dropbox_link(path)
+			
+	if "www.dropbox.com/s/" in url:
+		
+		id2, key = insert_new_item(conn)
+		
+		insert_new_data_value(conn, id2, FieldType.Title, "Dropbox URL - " + path)
+		insert_new_data_value(conn, id2, FieldType.Url, url)
+		
+		insert_new_attachment_item(conn, id2, parentItemID, None, None, 3)
+		
+		print("Concluído com Exito !")
+		
+	else:
+		print("Link do dropbox não criado ! {}".format(url))
 
 
 def clear_storage(conn):
@@ -246,24 +264,40 @@ def migrar_storage(conn):
 			
 			insert_new_attachment_item(conn, id1, parentItemID, contentType, file_path + path, 2)
 			
-			url = get_dropbox_link(path)
+			create_dropboxlink(conn, parentItemID, path)
 			
-			if "www.dropbox.com/s/" in url:
-				
-				id2, key = insert_new_item(conn)
-				
-				insert_new_data_value(conn, id2, FieldType.Title, "Dropbox URL - " + path)
-				insert_new_data_value(conn, id2, FieldType.Url, url)
-				
-				insert_new_attachment_item(conn, id2, parentItemID, None, None, 3)
-				
-				print("Concluído com Exito !")
-				
-			else:
-				print("Link do dropbox não criado !")
 		except Exception as ex:
 			print("Erro em {}: {}".format(id_velho, ex))
-				
+			
+
+def fix_dropbox_links(conn):
+	
+	backup_zotero_sqlite()
+	
+	cursor = conn.cursor()
+	cursor.execute("""select DISTINCT parentItemID
+from itemAttachments where parentItemID not in (
+select parentItemID
+from itemAttachments ita 
+	join itemData as itd on ita.itemID = itd.itemID
+	join itemdatavalues itdv on itd.valueid = itdv.valueid 
+where itdv.value like 'Dropbox%' and itd.fieldID = 1)""")
+	
+	for line in cursor.fetchall():
+		fix_dropbox_links_item(conn, line)
+
+
+def fix_dropbox_links_item(conn, id):
+	cursor = conn.cursor()
+	cursor.execute("""select path from itemAttachments where parentItemID = ?""",id)
+	path = cursor.fetchone()[0]
+	
+	url = str(path).replace(file_path, '')
+	
+	print(url)
+	
+	create_dropboxlink(conn, id[0], url)
+	
 
 print("========================================================================")
 print("=== 				SISTEMA DE INTEGRAÇÃO ZOTERO-DROPBOX		 	===")
@@ -271,7 +305,8 @@ print("========================================================================\
 print("\t1 - Migração física dos arquivos do storage para o dropbox (execute na pasta do storage)\n")
 print("\t2 - Inclusão dos links para os arquivos no dropbox\n")
 print("\t3 - Limpeza dos links dos arquivos do storage\n")
-print("\t4 - Sair\n")
+print("\t4 - Consertar links Dropbox faltantes\n")
+print("\t5 - Sair\n")
 
 op = input("Entre com a opção desejada:")
 print(op)
@@ -291,6 +326,11 @@ elif op == "3":
 	conn = create_connection()	
 	clear_storage(conn)
 	close_connection(conn)
+elif op == "4":
+	conn = create_connection()	
+	fix_dropbox_links(conn)
+	close_connection(conn)
+
 	
 sys.exit(0)	
 
