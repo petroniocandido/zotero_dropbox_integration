@@ -72,7 +72,7 @@ def generate_key():
 	
 
 def execute_bash_command(bashCommand):
-	path_to_bash = "/bin/bash"  # or whatever is appropriate
+	path_to_bash = '/bin/bash'  # or whatever is appropriate
 	process = subprocess.Popen(bashCommand, 
                            stdout=subprocess.PIPE, 
                            shell=True,
@@ -82,18 +82,18 @@ def execute_bash_command(bashCommand):
 
 
 def move_storage_files():
-	bashCommand = "ls */* | while read i; do echo -n $i | xargs -I{} -0  mv {}  -t ~/dados/Dropbox/Referencias/ ; done"
+	bashCommand = 'ls */* | while read i; do echo -n $i | xargs -I{} -0  mv {}  -t ~/dados/Dropbox/Referencias/ ; done'
 	output,_ = execute_bash_command(bashCommand)
 	print(output)
 	
 	
 def backup_zotero_sqlite():
-	output,_ = execute_bash_command("rm -rf zotero.sql.BAK")
-	output,_ = execute_bash_command("cp zotero.sqlite zotero.sqlite.BAK")
+	output,_ = execute_bash_command('rm -rf zotero.sql.BAK')
+	output,_ = execute_bash_command('cp zotero.sqlite zotero.sqlite.BAK')
 
 	
 def get_dropbox_link(filename):
-	bashCommand = "dropbox sharelink Referencias/'{}'".format(filename)
+	bashCommand = "dropbox sharelink Referencias/'{} | grep ^http*'".format(filename)
 	output, _ = execute_bash_command(bashCommand)
 	
 	return str(output, 'utf-8')
